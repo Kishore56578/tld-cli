@@ -12,13 +12,14 @@ The TechLift Digital CLI is an automated full-stack engineering engine. It provi
 | :--- | :--- | :--- | :--- |
 | `welcome` | N/A | N/A | (Default) Interactive full-screen dashboard displaying stack breakdown and command legends. |
 | `doctor` | N/A | N/A | Performs deep Node.js & pnpm environment audit. |
-| `create-app` | `<id> <path>` | `-y`, `-f` | Initializes full-stack Next.js blueprint. |
+| `create-app` | `<id> <path>` | `-y`, `-f`, `-r` | Initializes full-stack Next.js blueprint. |
 
 ### 🛠️ `create-app` Required Arguments
 - **`id`**: (Required) Project Workspace ID. (e.g. `my-new-app`).
 - **`targetPath`**: (Required) Destination directory. (e.g. `./` for current path).
 - **`-y, --yes`**: Skip confirmation limits for standard build pipelines.
 - **`-f, --faster`**: Instant deployment. Bypasses all interactive UI/framework customization menus for maximum background execution speed.
+- **`-r, --run`**: Auto-run server. Instantly boots the local `pnpm dev` server immediately after the deployment sequence completes.
 
 ---
 

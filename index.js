@@ -100,6 +100,7 @@ program
     .description('TechLift Digital Enterprise Suite\nAutomated Full-Stack Next.js Blueprint Deployer with Shadcn UI, Next-Auth v5, and MongoDB.')
     .option('-y, --yes', 'Skip confirmation prompts')
     .option('-f, --faster', 'Instant deployment (Bypass all interactive menus)')
+    .option('-r, --run', 'Auto-run dev server post-deployment')
     .version(pkg.version);
 
 program.addHelpText('after', `
@@ -148,6 +149,7 @@ program
     .argument('<targetPath>', 'Destination target directory path (Required, e.g. ./)')
     .option('-y, --yes', 'Skip confirmation prompts', false)
     .option('-f, --faster', 'Instant deployment (Bypass all interactive menus)', false)
+    .option('-r, --run', 'Auto-run dev server post-deployment', false)
     .action(actionWrapper(async (id, targetPath, options) => {
         showBanner();
         const globalOpts = program.opts();
@@ -235,36 +237,48 @@ program
         // 5. NEXT-AUTH@BETA CONFIGURATION (ENFORCED PROXY PATTERN)
         spin.start('Configuring Next-Auth & MongoDB (Proxy Pattern)...');
 
-        const authConfigTs = `import type { NextAuthConfig } from 'next-auth';
+        const authRouteDir = path.join('app', 'api', 'auth', '[...nextauth]');
+        shell.mkdir('-p', authRouteDir);
+
+        const isTs = fs.existsSync('tsconfig.json');
+        const ext = isTs ? 'ts' : 'js';
+
+        const authConfigContent = isTs 
+            ? `import type { NextAuthConfig } from 'next-auth';
 export const authConfig = {
   pages: { signIn: '/login' },
   callbacks: { authorized({ auth }) { return !!auth?.user; } },
   providers: [],
-} satisfies NextAuthConfig;`;
+} satisfies NextAuthConfig;`
+            : `export const authConfig = {
+  pages: { signIn: '/login' },
+  callbacks: { authorized({ auth }) { return !!auth?.user; } },
+  providers: [],
+};`;
 
-        const authTs = `import NextAuth from 'next-auth';
+        const authContent = `import NextAuth from 'next-auth';
 import { authConfig } from './auth.config';
 export const { auth, signIn, signOut, handlers } = NextAuth(authConfig);`;
 
-        const authRouteDir = path.join('app', 'api', 'auth', '[...nextauth]');
-        shell.mkdir('-p', authRouteDir);
-        const authRouteTs = `import { handlers } from '@/auth';
+        const authRouteContent = `import { handlers } from '@/auth';
 export const { GET, POST } = handlers;`;
 
-        const proxyTs = `import NextAuth from 'next-auth';
+        const proxyContent = `import NextAuth from 'next-auth';
 import { authConfig } from './auth.config';
 export default NextAuth(authConfig).auth;
 export const config = { matcher: ['/((?!api|_next/static|_next/image|.*\\\\.png$).*)'] };`;
 
-        fs.writeFileSync('auth.config.ts', authConfigTs);
-        fs.writeFileSync('auth.ts', authTs);
-        fs.writeFileSync(path.join(authRouteDir, 'route.ts'), authRouteTs);
-        fs.writeFileSync('proxy.ts', proxyTs);
+        fs.writeFileSync(`auth.config.${ext}`, authConfigContent);
+        fs.writeFileSync(`auth.${ext}`, authContent);
+        fs.writeFileSync(path.join(authRouteDir, `route.${ext}`), authRouteContent);
+        fs.writeFileSync(`proxy.${ext}`, proxyContent);
         fs.writeFileSync('.env.local', 'AUTH_SECRET=' + Math.random().toString(36).substring(2, 15) + '\n');
 
         // MONGODB CONNECTION SETUP
         shell.mkdir('-p', 'lib');
-        const mongodbTs = `import { MongoClient } from 'mongodb';
+        
+        const mongodbContent = isTs 
+            ? `import { MongoClient } from 'mongodb';
 
 if (!process.env.MONGODB_URI) {
   throw new Error('Invalid/Missing environment variable: "MONGODB_URI"');
@@ -291,8 +305,33 @@ if (process.env.NODE_ENV === 'development') {
   clientPromise = client.connect();
 }
 
+export default clientPromise;`
+            : `import { MongoClient } from 'mongodb';
+
+if (!process.env.MONGODB_URI) {
+  throw new Error('Invalid/Missing environment variable: "MONGODB_URI"');
+}
+
+const uri = process.env.MONGODB_URI;
+const options = {};
+
+let client;
+let clientPromise;
+
+if (process.env.NODE_ENV === 'development') {
+  if (!global._mongoClientPromise) {
+    client = new MongoClient(uri, options);
+    global._mongoClientPromise = client.connect();
+  }
+  clientPromise = global._mongoClientPromise;
+} else {
+  client = new MongoClient(uri, options);
+  clientPromise = client.connect();
+}
+
 export default clientPromise;`;
-        fs.writeFileSync(path.join('lib', 'mongodb.ts'), mongodbTs);
+
+        fs.writeFileSync(path.join('lib', `mongodb.${ext}`), mongodbContent);
         fs.appendFileSync('.env.local', 'MONGODB_URI=mongodb://127.0.0.1:27017/my-database\n');
 
         spin.succeed('Next-Auth Proxy & MongoDB architecture established.');
@@ -325,6 +364,28 @@ export default clientPromise;`;
         console.log(chalk.white('  🔗 Path : ') + chalk.cyan.underline(finalPath));
         console.log(chalk.white('  ⚡ Dev  : ') + chalk.gray(`cd ${path.relative(process.cwd(), finalPath)} && pnpm dev`));
         console.log('\n  ' + chalk.blue.bold('TechLift Digital ─ Engineering Your Vision.'));
+        console.log(chalk.gray('  ' + '─'.repeat(60)));
+        console.log(chalk.white('  💖 If this suite saved you hours of architecture setup,'));
+        console.log(chalk.white('  consider supporting the mission:'));
+        console.log(chalk.yellow('  ☕ Buy me a coffee : ') + chalk.cyan.underline('https://www.buymeacoffee.com/techreviver'));
+        console.log(chalk.gray('  ' + '─'.repeat(60) + '\n'));
+
+        const shouldRun = options.run || globalOpts.run;
+        if (!skipPrompts && !shouldRun) {
+            const { startServer } = await inquirer.prompt([{
+                type: 'confirm',
+                name: 'startServer',
+                message: chalk.cyan('Start the development server now?'),
+                default: true
+            }]);
+            if (startServer) {
+                console.log(chalk.gray('\n  Starting Local Dev Server (pnpm dev)...\n'));
+                execSync('pnpm dev', { stdio: 'inherit' });
+            }
+        } else if (shouldRun) {
+            console.log(chalk.gray('\n  Starting Local Dev Server (pnpm dev)...\n'));
+            execSync('pnpm dev', { stdio: 'inherit' });
+        }
     }));
 
 program.parse(process.argv);
