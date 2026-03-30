@@ -1,6 +1,6 @@
 {
   "name": "@techliftdigital/tld-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "TechLift Digital CLI - Enterprise tools and templates",
   "main": "index.js",
   "type": "module",
