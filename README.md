@@ -46,6 +46,10 @@ To prevent **Edge Runtime errors** in Next.js 16+, the CLI implements **Runtime 
 - **`shadcn init`**: Automated initialization.
 - **`shadcn add --all`**: Populates the project with the entire official shadcn component registry for immediate UI development.
 
+### 5. Production-Grade Database Configuration
+- **`lib/mongodb.ts`**: Automatically scaffolds the official Vercel/MongoDB singleton architectural pattern to handle Hot Module Replacements without connection drain.
+- **Environment Automation**: Directly configures `MONGODB_URI` connection strings securely alongside NextAuth details within `.env.local`.
+
 ---
 
 ## 💖 Support the Suite
@@ -57,6 +61,8 @@ If the TechLift Digital CLI has accelerated your enterprise engineering, conside
 ---
 
 ## 🎨 Visual & Technical Features
+- **Live Non-Blocking execution**: Tasks stream `stdout` directly into the UI spinner with duration timers to guarantee loaders never freeze, even during massive installations.
+- **Automatic Update Notifier**: Evaluates registry distribution tags asynchronously and alerts the developer if a newer version of the CLI is published.
 - **Mathematical Centering**: Logo and UI components are centered row-by-row based on `process.stdout.columns`.
 - **Adaptive Stacking**: Branding logo (TECHLIFT DIGITAL) automatically stacks vertically on narrow terminals to prevent layout breakage.
 - **Context-Aware Error Handling**: Step-specific Try/Catch blocks with prescriptive "💡 Tips" for resolution.
