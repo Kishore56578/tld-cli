@@ -1,6 +1,6 @@
 # 🚀 TechLift Digital CLI ─ Enterprise Suite Engine
 
-**Tech-Stack: Next.js 15+ | Next-Auth@Beta | Shadcn UI | MongoDB | Bcrypt | pnpm**
+**Tech-Stack: Next.js 16+ | Next-Auth@Beta | Shadcn UI | MongoDB | Bcrypt | pnpm**
 
 The TechLift Digital CLI is an automated full-stack engineering engine. It provides high-performance architectural scaffolding, environment audits, and production-ready deployments for modern enterprise web projects. Designed to deploy Next.js 16+, Shadcn UI, Next-Auth v5, and MongoDB architectures instantly.
 
