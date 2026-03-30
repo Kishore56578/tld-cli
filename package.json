@@ -1,0 +1,25 @@
+{
+  "name": "@techliftdigital/tld-cli",
+  "version": "1.0.0",
+  "description": "TechLift Digital CLI - Enterprise tools and templates",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "tld": "./index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "TechLift Digital",
+  "dependencies": {
+    "boxen": "^8.0.1",
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3",
+    "figlet": "^1.11.0",
+    "gradient-string": "^3.0.0",
+    "inquirer": "^13.3.2",
+    "ora": "^9.3.0",
+    "shelljs": "^0.10.0"
+  }
+}
