@@ -12,12 +12,12 @@ The TechLift Digital CLI is an automated full-stack engineering engine. It provi
 | :--- | :--- | :--- | :--- |
 | `welcome` | N/A | N/A | (Default) Displays centered Studio GUI dashboard. |
 | `doctor` | N/A | N/A | Performs deep Node.js & pnpm environment audit. |
-| `create-app` | `[id]` | `-p <path>`, `-y` | Initializes full-stack Next.js blueprint. |
+| `create-app` | `<id> <path>` | `-y` | Initializes full-stack Next.js blueprint. |
 
-### 🛠️ `create-app` Flags
-- `id`: (Optional) Project folder name. Default: `tl-service`.
-- `-p, --path <path>`: (Optional) Custom target directory. Default: `.`.
-- `-y, --yes`: (Optional) Bypasses confirmation summary for automated build pipelines.
+### 🛠️ `create-app` Required Arguments
+- **`id`**: (Required) Project Workspace ID. (e.g. `my-new-app`).
+- **`targetPath`**: (Required) Destination directory. (e.g. `./` for current path).
+- **`-y, --yes`**: Skip confirmation summary for automated build pipelines.
 
 ---
 
@@ -36,7 +36,7 @@ The TechLift Digital CLI is an automated full-stack engineering engine. It provi
 
 ### 3. Next-Auth@Beta (Auth.js v5) Architecture
 To prevent **Edge Runtime errors** in Next.js 16+, the CLI implements **Runtime Separation Architecture**:
-- **`auth.config.ts`**: Contains pure, Edge-compatible configuration (callbacks, sign-in pages).
+- **`auth.config.ts`**: Contains pure, Edge-compatible configuration.
 - **`auth.ts`**: Full Node.js initialization (exports `auth`, `signIn`, `signOut`).
 - **`proxy.ts`**: Dedicated **Edge Middleware Proxy**. Uses `NextAuth(authConfig).auth` directly to remain lightweight and compatible with the Edge runtime.
 - **`/app/api/auth/[...nextauth]/route.ts`**: Standardized API route handlers.
@@ -48,11 +48,19 @@ To prevent **Edge Runtime errors** in Next.js 16+, the CLI implements **Runtime 
 
 ---
 
+## 💖 Support the Suite
+
+If the TechLift Digital CLI has accelerated your enterprise engineering, consider supporting our mission to modernize full-stack development through high-performance automation.
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-techreviver-yellow?style=for-the-badge&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/techreviver)
+
+---
+
 ## 🎨 Visual & Technical Features
 - **Mathematical Centering**: Logo and UI components are centered row-by-row based on `process.stdout.columns`.
 - **Adaptive Stacking**: Branding logo (TECHLIFT DIGITAL) automatically stacks vertically on narrow terminals to prevent layout breakage.
 - **Context-Aware Error Handling**: Step-specific Try/Catch blocks with prescriptive "💡 Tips" for resolution.
-- **Premium Themes**: Uses `gradient-string` (Blue-to-Cyan) and `boxen` for high-fidelity interactive state visualization.
+- **Premium Themes**: Uses `gradient-string` (Blue-to-Cyan).
 
 ---
 

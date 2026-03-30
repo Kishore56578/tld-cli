@@ -1,7 +1,7 @@
 {
   "name": "@techliftdigital/tld-cli",
   "version": "1.0.2",
-  "description": "TechLift Digital CLI - Enterprise tools and templates",
+  "description": "Premium Enterprise CLI for automated Next.js (App Router), Next-Auth v5 (Beta), Shadcn UI, and MongoDB Full-Stack architectural scaffolding with Studio-Grade GUI.",
   "main": "index.js",
   "type": "module",
   "exports": "./index.js",
@@ -19,17 +19,36 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": [
+    "nextjs",
+    "cli",
+    "techlift-digital",
+    "tld",
+    "boilerplate",
+    "shadcn-ui",
+    "next-auth-beta",
+    "mongodb-native",
+    "fullstack-scaffold",
+    "enterprise-tools",
+    "developer-experience",
+    "automation-suite",
+    "react-framework"
+  ],
   "author": "TechLift Digital",
+  "license": "MIT",
+  "funding": {
+    "type": "buy-me-a-coffee",
+    "url": "https://www.buymeacoffee.com/techreviver"
+  },
   "dependencies": {
     "boxen": "^8.0.1",
-    "chalk": "^5.6.2",
-    "commander": "^14.0.3",
-    "figlet": "^1.11.0",
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "figlet": "^1.8.0",
     "gradient-string": "^3.0.0",
-    "inquirer": "^13.3.2",
-    "ora": "^9.3.0",
-    "shelljs": "^0.10.0"
+    "inquirer": "^12.4.2",
+    "ora": "^8.2.0",
+    "shelljs": "^0.8.5"
   },
   "homepage": "https://techliftdigital.in",
   "bugs": "https://github.com/Kishore56578/tld-cli/issues",
@@ -40,6 +59,5 @@
   "contributors": [
     "Kishore56578",
     "techlift-digital"
-  ],
-  "license": "MIT"
+  ]
 }
