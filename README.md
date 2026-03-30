@@ -35,7 +35,7 @@ The TechLift Digital CLI is an automated full-stack engineering engine. It provi
   - `@types/bcrypt` (dev-dependency).
 
 ### 3. Next-Auth@Beta (Auth.js v5) Architecture
-To prevent **Edge Runtime errors** in Next.js 15+, the CLI implements **Runtime Separation Architecture**:
+To prevent **Edge Runtime errors** in Next.js 16+, the CLI implements **Runtime Separation Architecture**:
 - **`auth.config.ts`**: Contains pure, Edge-compatible configuration (callbacks, sign-in pages).
 - **`auth.ts`**: Full Node.js initialization (exports `auth`, `signIn`, `signOut`).
 - **`proxy.ts`**: Dedicated **Edge Middleware Proxy**. Uses `NextAuth(authConfig).auth` directly to remain lightweight and compatible with the Edge runtime.

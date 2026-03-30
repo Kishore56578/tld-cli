@@ -1,0 +1,23 @@
+# Ignore Everything except index.js, package.json, and README.md
+*
+
+!index.js
+!package.json
+!README.md
+!SECURITY.md
+
+# Ignore specific development/meta files
+.gitignore
+.npmignore
+.vscode
+.idea
+.github
+node_modules
+pnpm-lock.yaml
+tests
+docs
+example
+scripts
+tmp
+dist
+build

@@ -93,19 +93,33 @@ program
 program
     .command('create-app')
     .description('Automated Full-Stack Blueprint Deployer')
-    .argument('[id]', 'Project Workspace ID', 'tl-service')
-    .option('-p, --path <path>', 'Custom target directory path', '.')
+    .argument('<id>', 'Project Workspace ID (Required)')
+    .argument('<targetPath>', 'Destination target directory path (Required, e.g. ./)')
     .option('-y, --yes', 'Skip confirmation prompts', false)
-    .action(actionWrapper(async (id, options) => {
+    .action(actionWrapper(async (id, targetPath, options) => {
         showBanner();
-        const targetDir = path.resolve(process.cwd(), options.path);
-        const finalPath = path.join(targetDir, id);
+
+        // 1. PROJECT ID VALIDATION
+        const idRegex = /^[a-z0-9-_]+$/;
+        if (!idRegex.test(id)) {
+            console.log(chalk.red('\n  ✘ Validation Error: Project ID must be lowercase alphanumeric (hyphens/underscores allowed).'));
+            return;
+        }
+
+        const absoluteTargetDir = path.resolve(process.cwd(), targetPath);
+        const finalPath = path.join(absoluteTargetDir, id);
         
+        if (fs.existsSync(finalPath)) {
+            console.log(chalk.red(`\n  ✘ Error: Destination directory already exists: `) + chalk.gray(finalPath));
+            console.log(chalk.yellow('  💡 Tip: Use a unique ID or a different target path.'));
+            return;
+        }
+
         console.log(chalk.cyan(`  🔄 PREPARING ARCHITECTURAL STACK FOR: `) + chalk.bold(id));
         console.log(chalk.white(`  📍 PATH: `) + chalk.gray(finalPath));
         console.log(chalk.gray('  ' + '─'.repeat(60) + '\n'));
 
-        // 1. Compliance Scan
+        // 2. Compliance Scan
         const spin = ora({ text: 'Compliance check...', color: 'blue' }).start();
         if (shell.exec('node -v', { silent: true }).code !== 0 || shell.exec('pnpm -v', { silent: true }).code !== 0) {
             spin.fail('Runtime Error: Verify Node/pnpm.');
@@ -115,14 +129,14 @@ program
 
         if (!options.yes) {
             console.log(chalk.blue.bold('\n  📦 DEPLOYMENT BUNDLE:'));
-            console.log(chalk.white('   → Framework  : Next.js 15+ + Tailwind + TS'));
-            console.log(chalk.white('   → Auth Engine: Next-Auth@Beta + Runtime Separation Architecture'));
+            console.log(chalk.white('   → Framework  : Next.js 16+ + Tailwind + TS'));
+            console.log(chalk.white('   → Auth Engine: Next-Auth@Beta + Proxy Architecture'));
             console.log(chalk.white('   → Database   : MongoDB Native Driver Interface\n'));
             const q = await inquirer.prompt([{ type: 'confirm', name: 'ok', message: chalk.cyan('Initiate build sequence?'), default: true }]);
             if (!q.ok) return;
         }
 
-        // 2. Next.js Scaffolding
+        // 3. Next.js Scaffolding
         spin.start('Executing Next.js (App Router) deployment...');
         const scaffoldCmd = `npx create-next-app@latest "${finalPath}" --typescript --tailwind --eslint --app --no-src-dir --import-alias "@/*" --use-pnpm --yes`;
         if (shell.exec(scaffoldCmd, { silent: true }).code !== 0) {
@@ -131,40 +145,33 @@ program
         }
         spin.succeed('Next.js architecture established.');
 
-        // 3. Dependencies
+        // 4. Dependencies
         process.chdir(finalPath);
         spin.start('Injecting Full-Stack Drivers (Auth.js, MongoDB, Bcrypt)...');
         shell.exec('pnpm add next-auth@beta mongodb bcrypt && pnpm add -D @types/bcrypt', { silent: true });
         spin.succeed('Stack drivers integrated.');
 
-        // 4. NEXT-AUTH@BETA CONFIGURATION (RUNTIME SEPARATION)
-        spin.start('Optimizing Next-Auth Runtime Separation (Edge vs Node)...');
+        // 5. NEXT-AUTH@BETA CONFIGURATION (ENFORCED PROXY PATTERN)
+        spin.start('Configuring Next-Auth@Beta (Proxy Pattern)...');
         
-        // auth.config.ts - Pure configuration for Edge compatibility
         const authConfigTs = `import type { NextAuthConfig } from 'next-auth';
-// Edge-compatible configuration
 export const authConfig = {
   pages: { signIn: '/login' },
   callbacks: { authorized({ auth }) { return !!auth?.user; } },
   providers: [],
 } satisfies NextAuthConfig;`;
 
-        // auth.ts - Full configuration including database adapters (Node.js runtime only)
         const authTs = `import NextAuth from 'next-auth';
 import { authConfig } from './auth.config';
-// Full initialization with DB adapters, etc.
 export const { auth, signIn, signOut, handlers } = NextAuth(authConfig);`;
 
-        // /app/api/auth/[...nextauth]/route.ts
         const authRouteDir = path.join('app', 'api', 'auth', '[...nextauth]');
         shell.mkdir('-p', authRouteDir);
         const authRouteTs = `import { handlers } from '@/auth';
 export const { GET, POST } = handlers;`;
 
-        // proxy.ts - The Edge-Runtime Proxy (Prevents runtime errors by using auth.config only)
         const proxyTs = `import NextAuth from 'next-auth';
 import { authConfig } from './auth.config';
-// Direct export using the edge-compatible config
 export default NextAuth(authConfig).auth;
 export const config = { matcher: ['/((?!api|_next/static|_next/image|.*\\\\.png$).*)'] };`;
 
@@ -174,9 +181,9 @@ export const config = { matcher: ['/((?!api|_next/static|_next/image|.*\\\\.png$
         fs.writeFileSync('proxy.ts', proxyTs);
         fs.writeFileSync('.env.local', 'AUTH_SECRET=' + Math.random().toString(36).substring(2, 15));
 
-        spin.succeed('Next-Auth Runtime Separation architecture established.');
+        spin.succeed('Next-Auth Proxy architecture established.');
 
-        // 5. Shadcn UI
+        // 6. Shadcn UI
         spin.start('Calibrating Shadcn UI registry...');
         if (shell.exec(`npx shadcn@latest init --yes`, { silent: true }).code !== 0) {
             spin.warn('Shadcn UI init skipped.');
