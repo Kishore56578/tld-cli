@@ -22,7 +22,7 @@ The TechLift Digital CLI is an automated full-stack engineering engine. It provi
 - **`-r, --run`**: Auto-run server. Instantly boots the local `pnpm dev` server immediately after the deployment sequence completes.
 
 ### 💡 Example Commands
-\`\`\`bash
+```bash
 # Standard interactive deployment
 tld create-app my-workspace ./
 
@@ -31,7 +31,7 @@ tld create-app internal-dash ./ -f
 
 # Express deployment + Auto-start Next.js server on finish
 tld create-app prod-portal ./ -f -r
-\`\`\`
+```
 
 ---
 
