@@ -21,6 +21,18 @@ The TechLift Digital CLI is an automated full-stack engineering engine. It provi
 - **`-f, --faster`**: Instant deployment. Bypasses all interactive UI/framework customization menus for maximum background execution speed.
 - **`-r, --run`**: Auto-run server. Instantly boots the local `pnpm dev` server immediately after the deployment sequence completes.
 
+### 💡 Example Commands
+\`\`\`bash
+# Standard interactive deployment
+tld create-app my-workspace ./
+
+# Express deployment (Bypass prompts)
+tld create-app internal-dash ./ -f
+
+# Express deployment + Auto-start Next.js server on finish
+tld create-app prod-portal ./ -f -r
+\`\`\`
+
 ---
 
 ## 🏗️ Core Implementation Details

@@ -106,7 +106,7 @@ program
 program.addHelpText('after', `
 Example calls:
   $ tld create-app my-new-app ./
-  $ tld create-app core-system ./ --faster
+  $ tld create-app core-system ./ --faster --run
   $ tld doctor
 `);
 
@@ -122,6 +122,7 @@ program
         console.log(chalk.white('   Streamlined Full-Stack Scaffolding Automation.\n'));
         console.log(chalk.blue('   $ tld create-app <id> <path>  ') + chalk.gray(' ─ Deploy a new workspace'));
         console.log(chalk.blue('   $ tld create-app <id> <p> -f  ') + chalk.gray(' ─ Instant express deployment'));
+        console.log(chalk.blue('   $ tld create-app <id> <p> -r  ') + chalk.gray(' ─ Deploy and start server'));
         console.log(chalk.blue('   $ tld doctor                  ') + chalk.gray(' ─ Audit runtime environment'));
         console.log(chalk.blue('   $ tld --help                  ') + chalk.gray(' ─ View all commands\n'));
     }));
