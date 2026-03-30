@@ -152,6 +152,8 @@ program
     .option('-f, --faster', 'Instant deployment (Bypass all interactive menus)', false)
     .option('-r, --run', 'Auto-run dev server post-deployment', false)
     .action(actionWrapper(async (id, targetPath, options) => {
+        const startTotalTime = Date.now();
+        const initialCwd = process.cwd();
         showBanner();
         const globalOpts = program.opts();
         const skipPrompts = options.yes || options.faster || globalOpts.yes || globalOpts.faster;
@@ -244,7 +246,7 @@ program
         const isTs = fs.existsSync('tsconfig.json');
         const ext = isTs ? 'ts' : 'js';
 
-        const authConfigContent = isTs 
+        const authConfigContent = isTs
             ? `import type { NextAuthConfig } from 'next-auth';
 export const authConfig = {
   pages: { signIn: '/login' },
@@ -273,12 +275,12 @@ export const config = { matcher: ['/((?!api|_next/static|_next/image|.*\\\\.png$
         fs.writeFileSync(`auth.${ext}`, authContent);
         fs.writeFileSync(path.join(authRouteDir, `route.${ext}`), authRouteContent);
         fs.writeFileSync(`proxy.${ext}`, proxyContent);
-        fs.writeFileSync('.env.local', 'AUTH_SECRET=' + Math.random().toString(36).substring(2, 15) + '\n');
+        fs.writeFileSync('.env.local', 'AUTH_SECRET=' + Math.random().toString(36).substring(2, 15) + '\nAUTH_URL=http://localhost:3000\n');
 
         // MONGODB CONNECTION SETUP
         shell.mkdir('-p', 'lib');
-        
-        const mongodbContent = isTs 
+
+        const mongodbContent = isTs
             ? `import { MongoClient } from 'mongodb';
 
 if (!process.env.MONGODB_URI) {
@@ -361,9 +363,15 @@ export default clientPromise;`;
             }
         }
 
-        console.log(chalk.green.bold('\n  ✨ STACK DEPLOYED SUCCESSFULLY! 📦'));
+        const totalElapsed = ((Date.now() - startTotalTime) / 1000).toFixed(1);
+        console.log(chalk.green.bold(`\n  ✨ STACK DEPLOYED SUCCESSFULLY IN ${totalElapsed}s! 📦`));
         console.log(chalk.white('  🔗 Path : ') + chalk.cyan.underline(finalPath));
-        console.log(chalk.white('  ⚡ Dev  : ') + chalk.gray(`cd ${path.relative(process.cwd(), finalPath)} && pnpm dev`));
+        console.log(chalk.white('  🔗 URL  : ') + chalk.cyan.underline('http://localhost:3000'));
+
+        const relativeCdPath = path.relative(initialCwd, finalPath);
+        const devCmdString = relativeCdPath === '' ? 'pnpm dev' : `cd ${relativeCdPath} && pnpm dev`;
+        console.log(chalk.white('  ⚡ Dev  : ') + chalk.gray(devCmdString));
+
         console.log('\n  ' + chalk.blue.bold('TechLift Digital ─ Engineering Your Vision.'));
         console.log(chalk.gray('  ' + '─'.repeat(60)));
         console.log(chalk.white('  💖 If this suite saved you hours of architecture setup,'));
