@@ -10,9 +10,46 @@ import gradient from 'gradient-string';
 import path from 'path';
 import fs from 'fs';
 import { createRequire } from 'module';
+import { spawn } from 'child_process';
+import updateNotifier from 'update-notifier';
 
 const require = createRequire(import.meta.url);
 const pkg = require('./package.json');
+
+updateNotifier({ pkg }).notify();
+
+const execAsyncWithProgress = (cmd, spin, baseText) => {
+    return new Promise((resolve) => {
+        const startTime = Date.now();
+        const child = spawn(cmd, { shell: true });
+
+        let timer = setInterval(() => {
+            const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+            spin.text = chalk.cyan(`${baseText} [${elapsed}s]`);
+        }, 100);
+
+        const handleData = (data) => {
+            const lines = data.toString().split('\n').map(l => l.trim()).filter(Boolean);
+            if (lines.length > 0) {
+                const lastLine = lines[lines.length - 1];
+                const cleanLine = lastLine.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, '');
+                const truncated = cleanLine.length > 50 ? cleanLine.substring(0, 47) + '...' : cleanLine;
+                const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                spin.text = chalk.cyan(`${baseText} [${elapsed}s] `) + chalk.gray(`→ ${truncated}`);
+            }
+        };
+
+        child.stdout.on('data', handleData);
+        child.stderr.on('data', handleData);
+
+        child.on('close', (code) => {
+            clearInterval(timer);
+            const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+            resolve({ code, elapsed });
+        });
+    });
+};
+
 
 const program = new Command();
 
@@ -23,7 +60,7 @@ function showBanner() {
     process.stdout.write('\x1Bc');
     const width = process.stdout.columns || 80;
     const blueGradient = gradient(['#00c6ff', '#0072ff', '#00c6ff']);
-    
+
     let logoText = '';
     if (width >= 90) {
         logoText = figlet.textSync('TECHLIFT DIGITAL', { font: 'Slant', horizontalLayout: 'fitted' });
@@ -32,12 +69,12 @@ function showBanner() {
         const d = figlet.textSync('DIGITAL', { font: 'Small', horizontalLayout: 'fitted' });
         logoText = `${t}\n${d}`;
     }
-    
+
     const lines = logoText.split('\n').map(l => l.trimEnd());
     const maxLogoWidth = Math.max(...lines.map(l => l.length));
     const logoPaddingLen = Math.max(0, Math.floor((width - maxLogoWidth) / 2));
     const logoPad = ' '.repeat(logoPaddingLen);
-    
+
     console.log('\n' + blueGradient.multiline(lines.map(l => logoPad + l).join('\n')));
     const slogan = "Automating Enterprise Modernization ─ The Full-Stack Collection";
     const p = Math.max(0, Math.floor((width - slogan.length) / 2));
@@ -108,7 +145,7 @@ program
 
         const absoluteTargetDir = path.resolve(process.cwd(), targetPath);
         const finalPath = path.join(absoluteTargetDir, id);
-        
+
         if (fs.existsSync(finalPath)) {
             console.log(chalk.red(`\n  ✘ Error: Destination directory already exists: `) + chalk.gray(finalPath));
             console.log(chalk.yellow('  💡 Tip: Use a unique ID or a different target path.'));
@@ -139,21 +176,26 @@ program
         // 3. Next.js Scaffolding
         spin.start('Executing Next.js (App Router) deployment...');
         const scaffoldCmd = `npx create-next-app@latest "${finalPath}" --typescript --tailwind --eslint --app --no-src-dir --import-alias "@/*" --use-pnpm --yes`;
-        if (shell.exec(scaffoldCmd, { silent: true }).code !== 0) {
+        const { code: nextCode, elapsed: nextTime } = await execAsyncWithProgress(scaffoldCmd, spin, 'Executing Next.js deployment');
+        if (nextCode !== 0) {
             spin.fail('Next.js Scaffold Failed.');
             return;
         }
-        spin.succeed('Next.js architecture established.');
+        spin.succeed(`Next.js architecture established in ${nextTime}s.`);
 
         // 4. Dependencies
         process.chdir(finalPath);
         spin.start('Injecting Full-Stack Drivers (Auth.js, MongoDB, Bcrypt)...');
-        shell.exec('pnpm add next-auth@beta mongodb bcrypt && pnpm add -D @types/bcrypt', { silent: true });
-        spin.succeed('Stack drivers integrated.');
+        const { code: depsCode, elapsed: depsTime } = await execAsyncWithProgress('pnpm add next-auth@beta mongodb bcrypt && pnpm add -D @types/bcrypt', spin, 'Injecting Full-Stack Drivers');
+        if (depsCode !== 0) {
+            spin.fail('Failed to integrate stack drivers.');
+            return;
+        }
+        spin.succeed(`Stack drivers integrated in ${depsTime}s.`);
 
         // 5. NEXT-AUTH@BETA CONFIGURATION (ENFORCED PROXY PATTERN)
-        spin.start('Configuring Next-Auth@Beta (Proxy Pattern)...');
-        
+        spin.start('Configuring Next-Auth & MongoDB (Proxy Pattern)...');
+
         const authConfigTs = `import type { NextAuthConfig } from 'next-auth';
 export const authConfig = {
   pages: { signIn: '/login' },
@@ -179,18 +221,52 @@ export const config = { matcher: ['/((?!api|_next/static|_next/image|.*\\\\.png$
         fs.writeFileSync('auth.ts', authTs);
         fs.writeFileSync(path.join(authRouteDir, 'route.ts'), authRouteTs);
         fs.writeFileSync('proxy.ts', proxyTs);
-        fs.writeFileSync('.env.local', 'AUTH_SECRET=' + Math.random().toString(36).substring(2, 15));
+        fs.writeFileSync('.env.local', 'AUTH_SECRET=' + Math.random().toString(36).substring(2, 15) + '\n');
 
-        spin.succeed('Next-Auth Proxy architecture established.');
+        // MONGODB CONNECTION SETUP
+        shell.mkdir('-p', 'lib');
+        const mongodbTs = `import { MongoClient } from 'mongodb';
+
+if (!process.env.MONGODB_URI) {
+  throw new Error('Invalid/Missing environment variable: "MONGODB_URI"');
+}
+
+const uri = process.env.MONGODB_URI;
+const options = {};
+
+let client: MongoClient;
+let clientPromise: Promise<MongoClient>;
+
+if (process.env.NODE_ENV === 'development') {
+  let globalWithMongo = global as typeof globalThis & {
+    _mongoClientPromise?: Promise<MongoClient>;
+  };
+
+  if (!globalWithMongo._mongoClientPromise) {
+    client = new MongoClient(uri, options);
+    globalWithMongo._mongoClientPromise = client.connect();
+  }
+  clientPromise = globalWithMongo._mongoClientPromise;
+} else {
+  client = new MongoClient(uri, options);
+  clientPromise = client.connect();
+}
+
+export default clientPromise;`;
+        fs.writeFileSync(path.join('lib', 'mongodb.ts'), mongodbTs);
+        fs.appendFileSync('.env.local', 'MONGODB_URI=mongodb://127.0.0.1:27017/my-database\n');
+
+        spin.succeed('Next-Auth Proxy & MongoDB architecture established.');
 
         // 6. Shadcn UI
         spin.start('Calibrating Shadcn UI registry...');
-        if (shell.exec(`npx shadcn@latest init --yes`, { silent: true }).code !== 0) {
+        const { code: shadInitCode, elapsed: shadInitTime } = await execAsyncWithProgress(`npx shadcn@latest init --yes`, spin, 'Calibrating Shadcn UI registry');
+        if (shadInitCode !== 0) {
             spin.warn('Shadcn UI init skipped.');
         } else {
-            spin.text = 'Populating design library (shadcn add --all)...';
-            shell.exec(`npx shadcn@latest add --all --yes`, { silent: true });
-            spin.succeed('Shadcn UI fully populated.');
+            spin.start('Populating design library (shadcn add --all)...');
+            const { code: shadAddCode, elapsed: shadAddTime } = await execAsyncWithProgress(`npx shadcn@latest add --all --yes`, spin, 'Populating design library');
+            spin.succeed(`Shadcn UI fully populated in ${shadAddTime}s.`);
         }
 
         console.log(chalk.green.bold('\n  ✨ STACK DEPLOYED SUCCESSFULLY! 📦'));
