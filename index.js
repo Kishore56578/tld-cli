@@ -10,7 +10,7 @@ import gradient from 'gradient-string';
 import path from 'path';
 import fs from 'fs';
 import { createRequire } from 'module';
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
 import updateNotifier from 'update-notifier';
 
 const require = createRequire(import.meta.url);
@@ -29,13 +29,13 @@ const execAsyncWithProgress = (cmd, spin, baseText) => {
         }, 100);
 
         const handleData = (data) => {
-            const lines = data.toString().split('\n').map(l => l.trim()).filter(Boolean);
+            const lines = data.toString().split('\n').map(l => l.trimEnd()).filter(Boolean);
             if (lines.length > 0) {
                 const lastLine = lines[lines.length - 1];
-                const cleanLine = lastLine.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, '');
-                const truncated = cleanLine.length > 50 ? cleanLine.substring(0, 47) + '...' : cleanLine;
+                const cleanLine = lastLine.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, '').trim();
+                const truncated = cleanLine.length > 80 ? cleanLine.substring(0, 77) + '...' : cleanLine;
                 const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-                spin.text = chalk.cyan(`${baseText} [${elapsed}s] `) + chalk.gray(`→ ${truncated}`);
+                spin.text = chalk.cyan(`${baseText} [${elapsed}s]\n`) + chalk.gray(`    └── ${truncated}`);
             }
         };
 
@@ -97,18 +97,32 @@ const actionWrapper = (fn) => async (...args) => {
 
 program
     .name('tld')
-    .description('TechLift Digital Enterprise Suite')
+    .description('TechLift Digital Enterprise Suite\nAutomated Full-Stack Next.js Blueprint Deployer with Shadcn UI, Next-Auth v5, and MongoDB.')
+    .option('-y, --yes', 'Skip confirmation prompts')
+    .option('-f, --faster', 'Instant deployment (Bypass all interactive menus)')
     .version(pkg.version);
+
+program.addHelpText('after', `
+Example calls:
+  $ tld create-app my-new-app ./
+  $ tld create-app core-system ./ --faster
+  $ tld doctor
+`);
 
 // Welcome
 program
     .command('welcome', { isDefault: true })
-    .description('Full-screen dashboard')
+    .description('Interactive full-screen dashboard')
     .action(actionWrapper(async () => {
         showBanner();
-        const msg = 'Ready for production. Use "tld create-app" or "tld --help".';
-        const p = Math.max(0, Math.floor((process.stdout.columns - msg.length) / 2));
-        console.log(' '.repeat(p) + chalk.white(msg) + '\n');
+        console.log(chalk.cyan.bold('\n  🚀 ENTERPRISE STACK ENGINE READY'));
+        console.log(chalk.gray('  ' + '─'.repeat(60)));
+        console.log(chalk.white('   Next.js 16+ · Tailwind · Shadcn UI · MongoDB · Auth.js v5'));
+        console.log(chalk.white('   Streamlined Full-Stack Scaffolding Automation.\n'));
+        console.log(chalk.blue('   $ tld create-app <id> <path>  ') + chalk.gray(' ─ Deploy a new workspace'));
+        console.log(chalk.blue('   $ tld create-app <id> <p> -f  ') + chalk.gray(' ─ Instant express deployment'));
+        console.log(chalk.blue('   $ tld doctor                  ') + chalk.gray(' ─ Audit runtime environment'));
+        console.log(chalk.blue('   $ tld --help                  ') + chalk.gray(' ─ View all commands\n'));
     }));
 
 // Doctor
@@ -133,8 +147,11 @@ program
     .argument('<id>', 'Project Workspace ID (Required)')
     .argument('<targetPath>', 'Destination target directory path (Required, e.g. ./)')
     .option('-y, --yes', 'Skip confirmation prompts', false)
+    .option('-f, --faster', 'Instant deployment (Bypass all interactive menus)', false)
     .action(actionWrapper(async (id, targetPath, options) => {
         showBanner();
+        const globalOpts = program.opts();
+        const skipPrompts = options.yes || options.faster || globalOpts.yes || globalOpts.faster;
 
         // 1. PROJECT ID VALIDATION
         const idRegex = /^[a-z0-9-_]+$/;
@@ -164,24 +181,46 @@ program
         }
         spin.succeed('Runtime Compliance: 100% Verified.');
 
-        if (!options.yes) {
-            console.log(chalk.blue.bold('\n  📦 DEPLOYMENT BUNDLE:'));
-            console.log(chalk.white('   → Framework  : Next.js 16+ + Tailwind + TS'));
-            console.log(chalk.white('   → Auth Engine: Next-Auth@Beta + Proxy Architecture'));
-            console.log(chalk.white('   → Database   : MongoDB Native Driver Interface\n'));
-            const q = await inquirer.prompt([{ type: 'confirm', name: 'ok', message: chalk.cyan('Initiate build sequence?'), default: true }]);
-            if (!q.ok) return;
+        let skipNextPrompt = skipPrompts;
+        let skipShadcnPrompt = skipPrompts;
+        console.log(chalk.blue.bold('\n  📦 DEPLOYMENT BUNDLE:'));
+        console.log(chalk.white('   → Framework  : Next.js 16+ + Tailwind + TS'));
+        console.log(chalk.white('   → Auth Engine: Next-Auth@Beta + Proxy Architecture'));
+        console.log(chalk.white('   → Database   : MongoDB Native Driver Interface + (mongodb.ts) MongoDB Configuration File\n'));
+        if (!skipPrompts) {
+            const prompts = await inquirer.prompt([
+                { type: 'confirm', name: 'customizeNext', message: chalk.cyan('Fully customize Next.js architecture? (Selecting No uses recommended defaults)'), default: false },
+                { type: 'confirm', name: 'customizeShadcn', message: chalk.cyan('Fully customize Shadcn UI themes/presets? (Selecting No uses recommended defaults)'), default: false },
+                { type: 'confirm', name: 'ok', message: chalk.cyan('Initiate build sequence?'), default: true }
+            ]);
+            if (!prompts.ok) return;
+            skipNextPrompt = !prompts.customizeNext;
+            skipShadcnPrompt = !prompts.customizeShadcn;
         }
 
         // 3. Next.js Scaffolding
-        spin.start('Executing Next.js (App Router) deployment...');
-        const scaffoldCmd = `npx create-next-app@latest "${finalPath}" --typescript --tailwind --eslint --app --no-src-dir --import-alias "@/*" --use-pnpm --yes`;
-        const { code: nextCode, elapsed: nextTime } = await execAsyncWithProgress(scaffoldCmd, spin, 'Executing Next.js deployment');
-        if (nextCode !== 0) {
-            spin.fail('Next.js Scaffold Failed.');
-            return;
+        if (!skipNextPrompt) {
+            spin.stop();
+            console.log(chalk.blue.bold('\n  🚀 NEXT.JS ARCHITECTURE (Interactive Calibration):'));
+            console.log(chalk.yellow('  ⚠ Warning: Disabling Tailwind or App Router will break Shadcn UI & Auth integrations.'));
+            try {
+                execSync(`npx create-next-app@latest "${finalPath}" --use-pnpm`, { stdio: 'inherit' });
+            } catch (err) {
+                console.log(chalk.red('\n  ✘ Next.js scaffold failed or aborted.'));
+                return;
+            }
+            spin.start('Verifying Next.js installation...');
+            spin.succeed('Next.js architecture established manually.');
+        } else {
+            spin.start('Executing Next.js (App Router) deployment...');
+            const scaffoldCmd = `npx create-next-app@latest "${finalPath}" --typescript --tailwind --eslint --app --no-src-dir --import-alias "@/*" --use-pnpm --yes`;
+            const { code: nextCode, elapsed: nextTime } = await execAsyncWithProgress(scaffoldCmd, spin, 'Executing Next.js deployment');
+            if (nextCode !== 0) {
+                spin.fail('Next.js Scaffold Failed.');
+                return;
+            }
+            spin.succeed(`Next.js architecture established in ${nextTime}s.`);
         }
-        spin.succeed(`Next.js architecture established in ${nextTime}s.`);
 
         // 4. Dependencies
         process.chdir(finalPath);
@@ -259,14 +298,27 @@ export default clientPromise;`;
         spin.succeed('Next-Auth Proxy & MongoDB architecture established.');
 
         // 6. Shadcn UI
-        spin.start('Calibrating Shadcn UI registry...');
-        const { code: shadInitCode, elapsed: shadInitTime } = await execAsyncWithProgress(`npx shadcn@latest init --yes`, spin, 'Calibrating Shadcn UI registry');
-        if (shadInitCode !== 0) {
-            spin.warn('Shadcn UI init skipped.');
-        } else {
+        if (!skipShadcnPrompt) {
+            spin.stop();
+            console.log(chalk.blue.bold('\n  🎨 SHADCN UI REGISTRY (Interactive Calibration):'));
+            try {
+                execSync('npx shadcn@latest init', { stdio: 'inherit' });
+            } catch (err) {
+                console.log(chalk.yellow('\n  ⚠ Shadcn UI init bypassed or failed.'));
+            }
             spin.start('Populating design library (shadcn add --all)...');
-            const { code: shadAddCode, elapsed: shadAddTime } = await execAsyncWithProgress(`npx shadcn@latest add --all --yes`, spin, 'Populating design library');
+            const { code: shadAddCode, elapsed: shadAddTime } = await execAsyncWithProgress(`npx shadcn@latest add --all --yes --overwrite`, spin, 'Populating design library');
             spin.succeed(`Shadcn UI fully populated in ${shadAddTime}s.`);
+        } else {
+            spin.start('Calibrating Shadcn UI registry...');
+            const { code: shadInitCode, elapsed: shadInitTime } = await execAsyncWithProgress(`npx shadcn@latest init -d --yes`, spin, 'Calibrating Shadcn UI registry');
+            if (shadInitCode !== 0) {
+                spin.warn('Shadcn UI init skipped.');
+            } else {
+                spin.start('Populating design library (shadcn add --all)...');
+                const { code: shadAddCode, elapsed: shadAddTime } = await execAsyncWithProgress(`npx shadcn@latest add --all --yes --overwrite`, spin, 'Populating design library');
+                spin.succeed(`Shadcn UI fully populated in ${shadAddTime}s.`);
+            }
         }
 
         console.log(chalk.green.bold('\n  ✨ STACK DEPLOYED SUCCESSFULLY! 📦'));

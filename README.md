@@ -2,7 +2,7 @@
 
 **Tech-Stack: Next.js 15+ | Next-Auth@Beta | Shadcn UI | MongoDB | Bcrypt | pnpm**
 
-The TechLift Digital CLI is an automated full-stack engineering engine. It provides high-performance architectural scaffolding, environment audits, and production-ready deployments for modern enterprise web projects.
+The TechLift Digital CLI is an automated full-stack engineering engine. It provides high-performance architectural scaffolding, environment audits, and production-ready deployments for modern enterprise web projects. Designed to deploy Next.js 16+, Shadcn UI, Next-Auth v5, and MongoDB architectures instantly.
 
 ---
 
@@ -10,14 +10,15 @@ The TechLift Digital CLI is an automated full-stack engineering engine. It provi
 
 | Command | Args | Options | Description |
 | :--- | :--- | :--- | :--- |
-| `welcome` | N/A | N/A | (Default) Displays centered Studio GUI dashboard. |
+| `welcome` | N/A | N/A | (Default) Interactive full-screen dashboard displaying stack breakdown and command legends. |
 | `doctor` | N/A | N/A | Performs deep Node.js & pnpm environment audit. |
-| `create-app` | `<id> <path>` | `-y` | Initializes full-stack Next.js blueprint. |
+| `create-app` | `<id> <path>` | `-y`, `-f` | Initializes full-stack Next.js blueprint. |
 
 ### 🛠️ `create-app` Required Arguments
 - **`id`**: (Required) Project Workspace ID. (e.g. `my-new-app`).
 - **`targetPath`**: (Required) Destination directory. (e.g. `./` for current path).
-- **`-y, --yes`**: Skip confirmation summary for automated build pipelines.
+- **`-y, --yes`**: Skip confirmation limits for standard build pipelines.
+- **`-f, --faster`**: Instant deployment. Bypasses all interactive UI/framework customization menus for maximum background execution speed.
 
 ---
 
