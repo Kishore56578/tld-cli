@@ -4,6 +4,18 @@
 
 The TechLift Digital CLI is an automated full-stack engineering engine. It provides high-performance architectural scaffolding, environment audits, and production-ready deployments for modern enterprise web projects. Designed to deploy Next.js 16+, Shadcn UI, Next-Auth v5, and MongoDB architectures instantly.
 
+## 🎯 The Problem It Solves
+
+Modern full-stack web development requires significant repetitive boilerplate. Setting up a production-ready Next.js 16 application with secure Auth.js v5 (handling Edge runtime proxies), configuring a reliable Vercel/MongoDB connection singleton, and individually initializing 45+ Shadcn UI components can easily take an experienced developer **45 to 60+ minutes** of tedious manual configuration before writing a single line of business logic.
+
+This CLI radically optimizes that workflow. 
+
+**What it achieves in ~120 seconds:**
+- ⚡ Eliminates manual framework configurations and Next-Auth Edge runtime debugging.
+- ⚡ Populates the entire Shadcn UI component design system instantly.
+- ⚡ Enforces enterprise-grade architectural patterns (Proxy architectures, DB singletons) natively out of the box.
+- ⚡ **Time Saved**: Bypasses roughly **1 hour of redundant architectural setup** on every new project you start.
+
 ---
 
 ## 📋 Available Commands & Usage
@@ -89,5 +101,16 @@ If the TechLift Digital CLI has accelerated your enterprise engineering, conside
 2. Clone the repository and run `pnpm install`.
 3. Executable: `node index.js`.
 
-**TechLift Digital ─ Engineering Your Vision.**  
+---
+
+## 🤖 Coming Soon: AI Engineering Agents (`tld coder`)
+
+We are actively developing the next massive evolution of the TechLift ecosystem: **`tld coder`**.
+The next major update will deploy autonomous **AI Coding Agents directly into your terminal**.
+
+Powered by cutting-edge intelligence (integrating **Sarvam AI** and our own proprietary models custom-trained specifically for coding), this future update will empower you to generate logic, trace errors, and have an AI pair-programmer executing natively inside your local CLI environment! Stay tuned!
+
+---
+
+**Made with ❤️ in India by TechLift Digital ─ Engineering Your Vision.**  
 [Official Portal](https://www.techliftdigital.in/cli)
