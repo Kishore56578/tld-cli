@@ -101,7 +101,7 @@ program
     .option('-y, --yes', 'Skip confirmation prompts')
     .option('-f, --faster', 'Instant deployment (Bypass all interactive menus)')
     .option('-r, --run', 'Auto-run dev server post-deployment')
-    .version(pkg.version);
+    .version(pkg.version, '-v, --version', 'output the current version');
 
 program.addHelpText('after', `
 Example calls:
