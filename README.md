@@ -70,4 +70,4 @@ If the TechLift Digital CLI has accelerated your enterprise engineering, conside
 3. Executable: `node index.js`.
 
 **TechLift Digital ─ Engineering Your Vision.**  
-[Official Portal](https://www.techliftdigital.in/)
+[Official Portal](https://www.techliftdigital.in/cli)

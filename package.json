@@ -50,7 +50,7 @@
     "ora": "^8.2.0",
     "shelljs": "^0.8.5"
   },
-  "homepage": "https://techliftdigital.in",
+  "homepage": "https://techliftdigital.in/cli",
   "bugs": "https://github.com/Kishore56578/tld-cli/issues",
   "repository": {
     "type": "git",
