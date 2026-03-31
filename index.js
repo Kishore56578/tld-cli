@@ -12,6 +12,8 @@ import fs from 'fs';
 import { createRequire } from 'module';
 import { spawn, execSync } from 'child_process';
 import updateNotifier from 'update-notifier';
+import { bootstrapCoder } from './src/coder.js';
+import { handleLogin, handleConfig } from './src/config.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require('./package.json');
@@ -141,6 +143,32 @@ program
             else console.log(chalk.red('    ✘ ') + `${c.id.padEnd(10)} : ${chalk.red('NOT DETECTED')}`);
         });
     }));
+
+// AI Coder Login
+program
+    .command('login')
+    .description('Authenticate with the TechLift Digital Platform (Required for TLD Coder)')
+    .action(actionWrapper(async () => {
+        handleLogin();
+    }));
+
+// AI Coder Config
+program
+    .command('config <action> [value]')
+    .description('Manage local CLI configuration (e.g. set-key <apiKey>, set-model <modelId>)')
+    .action(actionWrapper(async (action, value) => {
+        handleConfig(action, value);
+    }));
+
+// The Core AI Coder
+program
+    .command('coder')
+    .description('Launch the Terminal-Based Autonomous Coding Agent')
+    .option('--dev', 'Run the agent in Development Testing mode (Mock APIs and dry-runs)')
+    .action(actionWrapper(async (options) => {
+        await bootstrapCoder({ devMode: options.dev });
+    }));
+
 
 // Create-App
 program
