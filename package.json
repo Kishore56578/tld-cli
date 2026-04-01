@@ -1,6 +1,6 @@
 {
   "name": "@techliftdigital/tld-cli",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "Premium Enterprise CLI for automated Next.js (App Router), Next-Auth v5 (Beta), Shadcn UI, and MongoDB Full-Stack architectural scaffolding with Studio-Grade GUI.",
   "main": "index.js",
   "type": "module",
