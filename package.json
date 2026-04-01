@@ -41,11 +41,8 @@
     "url": "https://www.buymeacoffee.com/techreviver"
   },
   "dependencies": {
-    "boxen": "^8.0.1",
     "chalk": "^5.4.1",
     "commander": "^13.1.0",
-    "conf": "^15.1.0",
-    "dotenv": "^17.3.1",
     "figlet": "^1.8.0",
     "gradient-string": "^3.0.0",
     "inquirer": "^12.4.2",

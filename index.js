@@ -1,5 +1,14 @@
 #!/usr/bin/env node
 
+/**
+ * GLOBAL PROCESS LIFECYCLE MANAGEMENT:
+ * Ensuring the TechLift Digital CLI remains responsive and exits cleanly on user interruption.
+ */
+process.on('SIGINT', () => {
+    process.stdout.write('\n\n👋 TechLift Digital Studio: Environment session closed.\n');
+    process.exit(0);
+});
+
 import { Command } from 'commander';
 import chalk from 'chalk';
 import figlet from 'figlet';
@@ -12,8 +21,7 @@ import fs from 'fs';
 import { createRequire } from 'module';
 import { spawn, execSync } from 'child_process';
 import updateNotifier from 'update-notifier';
-import { bootstrapCoder } from './src/coder.js';
-import { handleLogin, handleConfig } from './src/config.js';
+
 
 const require = createRequire(import.meta.url);
 const pkg = require('./package.json');
@@ -89,7 +97,7 @@ const actionWrapper = (fn) => async (...args) => {
         await fn(...args);
     } catch (err) {
         if (err.name === 'ExitPromptError' || err.message.includes('SIGINT')) {
-            console.log(chalk.blue('\n\n👋 TechLift Studio: Environment session closed.'));
+            console.log(chalk.blue('\n\n👋 TechLift Digital Studio: Environment session closed.'));
         } else {
             console.error(chalk.red.bold('\n💥 GLOBAL ENGINE FAILURE:'), chalk.red(err.message));
         }
@@ -121,10 +129,8 @@ program
         console.log(chalk.cyan.bold('\n  🚀 ENTERPRISE STACK ENGINE READY'));
         console.log(chalk.gray('  ' + '─'.repeat(60)));
         console.log(chalk.white('   Next.js 16+ · Tailwind · Shadcn UI · MongoDB · Auth.js v5'));
-        console.log(chalk.white('   Streamlined Full-Stack Scaffolding Automation.\n'));
-        console.log(chalk.blue('   $ tld create-app <id> <path>  ') + chalk.gray(' ─ Deploy a new workspace'));
-        console.log(chalk.blue('   $ tld create-app <id> <p> -f  ') + chalk.gray(' ─ Instant express deployment'));
-        console.log(chalk.blue('   $ tld create-app <id> <p> -r  ') + chalk.gray(' ─ Deploy and start server'));
+        console.log(chalk.white('   Streamlined Full-Stack Scaffolding & Autonomous AI Agent.\n'));
+        console.log(chalk.blue('   $ tld create-app <id> <p>     ') + chalk.gray(' ─ Deploy a new workspace stack'));
         console.log(chalk.blue('   $ tld doctor                  ') + chalk.gray(' ─ Audit runtime environment'));
         console.log(chalk.blue('   $ tld --help                  ') + chalk.gray(' ─ View all commands\n'));
     }));
@@ -136,38 +142,21 @@ program
     .action(actionWrapper(async () => {
         showBanner();
         console.log(chalk.yellow.bold('  🛡️  SYSTEM COMPLIANCE SCAN...\n'));
-        const checks = [{ id: 'Node', cmd: 'node -v' }, { id: 'pnpm', cmd: 'pnpm -v' }];
-        checks.forEach(c => {
+
+        // 1. Core Runtimes
+        const runtimes = [
+            { id: 'Node.js', cmd: 'node -v' },
+            { id: 'pnpm', cmd: 'pnpm -v' }
+        ];
+
+        console.log(chalk.cyan('  [Runtimes]'));
+        runtimes.forEach(c => {
             const res = shell.exec(c.cmd, { silent: true });
             if (res.code === 0) console.log(chalk.green('    ✔ ') + `${c.id.padEnd(10)} : ${chalk.white(res.stdout.trim())}`);
             else console.log(chalk.red('    ✘ ') + `${c.id.padEnd(10)} : ${chalk.red('NOT DETECTED')}`);
         });
     }));
 
-// AI Coder Login
-program
-    .command('login')
-    .description('Authenticate with the TechLift Digital Platform (Required for TLD Coder)')
-    .action(actionWrapper(async () => {
-        handleLogin();
-    }));
-
-// AI Coder Config
-program
-    .command('config <action> [value]')
-    .description('Manage local CLI configuration (e.g. set-key <apiKey>, set-model <modelId>)')
-    .action(actionWrapper(async (action, value) => {
-        handleConfig(action, value);
-    }));
-
-// The Core AI Coder
-program
-    .command('coder')
-    .description('Launch the Terminal-Based Autonomous Coding Agent')
-    .option('--dev', 'Run the agent in Development Testing mode (Mock APIs and dry-runs)')
-    .action(actionWrapper(async (options) => {
-        await bootstrapCoder({ devMode: options.dev });
-    }));
 
 
 // Create-App

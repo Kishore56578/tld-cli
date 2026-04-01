@@ -112,5 +112,5 @@ Powered by cutting-edge intelligence (integrating **Sarvam AI** and our own prop
 
 ---
 
-**Made with ❤️ in India by TechLift Digital ─ Engineering Your Vision.**  
-[Official Portal](https://www.techliftdigital.in/cli)
+**Made with ❤️ by TechLift Digital ─ Engineering Your Vision.**  
+[Official Portal](https://techliftdigital.in/cli)
